@@ -1,4 +1,3 @@
-require 'pry'
 class Transfer
 	# comment
 	@@history = []
@@ -19,23 +18,27 @@ class Transfer
 
 	def valid?
 		#check that both accounts are valid by calling on both account's valid methods
-		sender_acct = BankAccount.all.select do | sender | 
-			sender.name == self.sender
-		end
-		receiver_acct = BankAccount.all.select do | receiver |
-			receiver.name == self.receiver
-		end
-		sender_acct.status == 'open' && receiver_acct.status == 'open'
-		binding.pry
+		self.sender.valid? && self.receiver.valid?
 	end
 
-	def execute_transation
-		# Execute Successful transaction
-		# Each transaction can only happen once
-		# Reject on insufficient funds
+	def execute_transaction
+		if self.status != "complete"
+			if self.valid? && self.sender.balance > self.amount
+				self.sender.balance -= self.amount
+				self.receiver.balance += self.amount
+				self.status = "complete"
+			else
+				self.status = 'rejected'
+				"Transaction rejected. Please check your account balance."
+			end	
+		end
 	end
 
 	def reverse_transfer
-		# Reverse a transfer only if its been executed
+		if self.status == "complete"
+			self.sender.balance += self.amount
+			self.receiver.balance -= self.amount
+			self.status = "reversed"
+		end
 	end
 end
